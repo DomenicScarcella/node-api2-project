@@ -61,7 +61,7 @@ router.post('/', (req, res) => {
                 console.log(err);
                 res.status(500).json({message: 'There was an error while saving the post to the database'});
             });
-    };
+    }
     
 });
 
@@ -85,21 +85,19 @@ router.put('/:id', async (req, res) => {
                 console.log(err);
                 res.status(500).json({message: 'The post information could not be modified'});
             });
-    };
+    }
 
 });
 
-router.delete('/:id', (req, res) => {
+router.delete('/:id', async (req, res) => {
+    const oldPost = await Post.findById(req.params.id)
     Post.remove(req.params.id)
-        .then(() => {
-            return Post.findById(req.params.id)
-        })
         .then(count => {
-            if (count > 0) {
-                res.status(200).json(count);
+            if (count) {
+                res.status(200).json(oldPost);
             } else {
                 res.status(404).json({message: 'The post with the specified ID does not exist'});
-            };
+            }
         })
         .catch(err => {
             console.log(err);
