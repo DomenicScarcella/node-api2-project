@@ -51,6 +51,10 @@ router.post('/', (req, res) => {
     } else {
         Post.insert(newPost)
             .then(post => {
+                const {id} = post;
+                return Post.findById(id)
+            })
+            .then(post => {
                 res.status(201).json(post);
             })
             .catch(err => {
@@ -61,29 +65,35 @@ router.post('/', (req, res) => {
     
 });
 
-router.put('/:id', (req, res) => {
+router.put('/:id', async (req, res) => {
     const updatePost = req.body;
     if (!updatePost.title || !updatePost.contents) {
         res.status(400).json({message: 'Please provide title and contents for the post'})
     } else {
         Post.update(req.params.id, updatePost)
-        .then(post => {
-            if (post) {
-                res.status(200).json(post);
-            } else {
-                res.status(404).json({message: 'The post with the specified ID does not exist'});
-            }
-        })
-        .catch(err => {
-            console.log(err);
-            res.status(500).json({message: 'The post information could not be modified'});
-        });
+            .then(() => {
+                return Post.findById(req.params.id)
+            })
+            .then(post => {
+                if (post) {
+                    res.status(200).json(post);
+                } else {
+                    res.status(404).json({message: 'The post with the specified ID does not exist'});
+                }
+            })
+            .catch(err => {
+                console.log(err);
+                res.status(500).json({message: 'The post information could not be modified'});
+            });
     };
 
 });
 
 router.delete('/:id', (req, res) => {
     Post.remove(req.params.id)
+        .then(() => {
+            return Post.findById(req.params.id)
+        })
         .then(count => {
             if (count > 0) {
                 res.status(200).json(count);
